@@ -17,6 +17,11 @@ public class ServidorThread extends Thread{
 	public static String jugador1;
 	public String[] apuestas = new String[2];
 	public static int numeroApuestas=0;
+	public static int ApuestaJugador1;
+	public static int ApuestaJugador2;
+	public static int ApuestaTotal1;
+	public static int ApuestaTotal2;
+	
 	
 	public ServidorThread(Socket cliente){
 		this.cliente=cliente;
@@ -61,39 +66,36 @@ public class ServidorThread extends Thread{
 						jugadorActual=ordenes[1];
 					}
 				}else if (ordenes[0].equals("MY") && ordenes[1].equals("BET")){
-					numeroApuestas++;
-					for(int i=0; i<Servidor.clientes.size(); i++){
-						Servidor.clientes.get(i).salida.writeUTF("BET OF " + this.jugadorActual + " " +ordenes[2]);
-						if(i==0){
+						if(numeroApuestas==0){
+							ApuestaJugador1=Integer.valueOf(ordenes[2]);
+							ApuestaTotal1=Integer.valueOf(ordenes[3]);
+							for(int i=0; i<Servidor.clientes.size(); i++){
+								Servidor.clientes.get(i).salida.writeUTF("BET OF " + this.jugadorActual + " " +ordenes[2]);
+							}
 							Servidor.clientes.get(0).salida.writeUTF("WAIT");
-
-							Servidor.clientes.get(0).apuestas[0] = ordenes[2];
-							Servidor.clientes.get(0).apuestas[1] = ordenes[3];
-						}else if(i==1){
 							Servidor.clientes.get(1).salida.writeUTF("YOUR BET");
-							Servidor.clientes.get(1).apuestas[0] = ordenes[2];
-							Servidor.clientes.get(1).apuestas[1] = ordenes[3];
+							
 						}
-						
+						if(numeroApuestas==1){
+							ApuestaJugador2=Integer.valueOf(ordenes[2]);
+							ApuestaTotal2=Integer.valueOf(ordenes[3]);
+							for(int i=0; i<Servidor.clientes.size(); i++){
+								Servidor.clientes.get(i).salida.writeUTF("BET OF " + this.jugadorActual + " " +ordenes[2]);
+							}
+							
+						}
+						numeroApuestas++;
 					}
 					if(numeroApuestas==2){
-						int suma = Integer.valueOf(Servidor.clientes.get(0).apuestas[0]) +Integer.valueOf(Servidor.clientes.get(1).apuestas[0]);
-						String ganador="";
-						for(int i =0; i< Servidor.clientes.size();i++){
-							if(suma==Integer.valueOf(Servidor.clientes.get(i).apuestas[1])){
-								ganador=("WINNER " + Servidor.clientes.get(i).jugadorActual);
-							}
-						}
-						for(int i=0; i<Servidor.clientes.size();i++){
-							if(ganador.equals("")==false){
-									Servidor.clientes.get(i).salida.writeUTF(ganador);
-								}else{
-									Servidor.clientes.get(i).salida.writeUTF("WINNER NONE");
-								}
-						}
+						int suma = ApuestaJugador1+ApuestaJugador2;
+						String ganador="NONE";
+						if(suma==ApuestaTotal1) ganador=jugador1;
+						if(suma==ApuestaTotal2) ganador=jugador2;
+						Servidor.clientes.get(0).salida.writeUTF("WINNER "+ganador);
+						Servidor.clientes.get(1).salida.writeUTF("WINNER "+ganador);
 					}
 				}
-			}
+			
 		}catch(Exception e){}
 	}
 }
